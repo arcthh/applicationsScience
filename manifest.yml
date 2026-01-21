@@ -1,0 +1,17 @@
+modules:
+  jira:issuePanel:
+    - key: applicationsscience-hello-world-panel
+      function: main
+      title: Hello World
+      icon: https://developer.atlassian.com/platform/forge/images/issue-panel-icon.svg
+  function:
+    - key: main
+      handler: index.run
+app:
+  runtime:
+    name: nodejs20.x
+  id: ari:cloud:ecosystem::app/00000000-0000-0000-0000-000000000000
+permissions:
+  scopes:
+    - read:jira-work
+

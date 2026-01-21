@@ -1,0 +1,17 @@
+{
+  "name": "applicationsscience",
+  "version": "1.0.0",
+  "description": "Forge application for Atlassian products",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["forge", "atlassian", "jira"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@forge/api": "^7.0.0",
+    "@forge/resolver": "^1.7.1",
+    "@forge/ui": "^1.11.4"
+  }
+}
