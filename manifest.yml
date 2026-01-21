@@ -6,7 +6,7 @@ modules:
       icon: https://developer.atlassian.com/platform/forge/images/issue-panel-icon.svg
   function:
     - key: main
-      handler: index.run
+      handler: index.handler
 app:
   runtime:
     name: nodejs20.x
