@@ -1,0 +1,41 @@
+modules:
+  jira:customField:
+    - key: impacted-applications-field
+      name: Impacted Applications
+      description: Display Impacted CSI Applications
+      type: string
+      collection: list
+      readOnly: false
+      resolver:
+        function: fieldResolver
+      edit:
+        function: fieldEdit
+      view:
+        function: fieldView
+      searcherKey: com.atlassian.jira.plugin.system.customfieldtypes:multiselectsearcher
+  trigger:
+    - key: story-listener-trigger
+      function: main
+      events:
+        - avi:jira:created:issue
+        - avi:jira:updated:issue
+functions:
+  - key: main
+    handler: src/index.run
+  - key: fieldResolver
+    handler: src/field.resolver
+  - key: fieldView
+    handler: src/field.view
+  - key: fieldEdit
+    handler: src/field.edit
+app:
+  id: ari:cloud:ecosystem::app/00000000-0000-0000-0000-000000000000
+  runtime:
+    name: nodejs18.x
+    snapshots: false
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - manage:jira-configuration
+    - storage:app
