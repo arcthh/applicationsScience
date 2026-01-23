@@ -40,6 +40,18 @@ Triggers are configured for:
 - `avi:jira:created:issue`
 - `avi:jira:updated:issue`
 
+## Provisioning the custom field via Forge (admin-only)
+This app exposes a **web trigger** that creates the `Impacted Application/s` multi-select field using Jira’s REST API. This requires admin access (which you have) and the `manage:jira-configuration` scope.
+
+1. Deploy the app, then run:
+   ```bash
+   forge webtrigger --function story-listener-provision
+   ```
+2. Invoke the URL once as an admin. The response includes the created field id and stores it in Forge storage.
+3. Configure field options for CSI Applications in Jira settings after creation.
+
+If you prefer manual creation, you can still create the field in Jira admin and set `customfield_10602` accordingly.
+
 ## Deployment
 From the `story-listener` directory:
 1. Install dependencies:
@@ -65,3 +77,8 @@ From the `story-listener` directory:
 ## Notes
 - Jira Cloud indexing is asynchronous; changes may take a short time to appear in search results.
 - If Jira notify is blocked, wire a real SMTP integration in `sendTravelRuleEmailPlaceholder`.
+
+## Custom field provisioning (Impacted Application/s)
+The app **can** create the custom field via Jira’s REST API (`/rest/api/3/field`) because it already requests `manage:jira-configuration`, but Jira Cloud only allows this when an **admin** installs/authorizes the app. Forge does not auto-provision fields during install, so you typically have two options:
+1. **Manual creation (recommended):** An admin creates a multi-select field named `Impacted Application/s` with tooltip text “Display Impacted CSI Applications,” then configures options for CSI Applications in Jira settings.
+2. **One-time REST provisioning (optional):** Add a scripted/admin-only step that calls the field create API, then adds field options (via the custom field context/option endpoints). This is feasible within the same Forge app, but should be run explicitly by an admin because it changes Jira configuration.

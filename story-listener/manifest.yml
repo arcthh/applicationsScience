@@ -5,9 +5,14 @@ modules:
       events:
         - avi:jira:created:issue
         - avi:jira:updated:issue
+  webtrigger:
+    - key: story-listener-provision
+      function: provision
 functions:
   - key: main
     handler: src/index.run
+  - key: provision
+    handler: src/index.provision
 app:
   id: ari:cloud:ecosystem::app/00000000-0000-0000-0000-000000000000
   runtime:
