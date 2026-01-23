@@ -1,0 +1,12 @@
+{
+  "name": "story-listener",
+  "version": "1.0.0",
+  "description": "Forge app to sync Epic impacted applications from Story children.",
+  "main": "src/index.js",
+  "scripts": {
+    "lint": "echo 'No lint configured'"
+  },
+  "dependencies": {
+    "@forge/api": "^3.6.0"
+  }
+}
