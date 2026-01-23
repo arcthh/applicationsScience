@@ -2,16 +2,12 @@
   "name": "story-listener-custom",
   "version": "1.0.0",
   "description": "Forge app with custom field and Story/Epic listener for Impacted Applications.",
-  "main": "src/index.ts",
+  "main": "src/index.js",
   "scripts": {
-    "lint": "echo 'No lint configured'",
-    "typecheck": "tsc --noEmit"
+    "lint": "echo 'No lint configured'"
   },
   "dependencies": {
     "@forge/api": "^3.6.0",
     "@forge/ui": "^1.9.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.5"
   }
 }
