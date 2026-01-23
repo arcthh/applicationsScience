@@ -1,8 +1,15 @@
-import { CustomFieldEdit, CustomFieldView, CustomFieldResolver, Form, Text, TextField } from '@forge/ui';
+import {
+  CustomFieldEdit,
+  CustomFieldView,
+  CustomFieldResolver,
+  Form,
+  Text,
+  TextField,
+} from '@forge/ui';
 
-export const resolver: CustomFieldResolver = (value) => value;
+export const resolver = (value) => value;
 
-const parseValue = (value: unknown): string[] => {
+const parseValue = (value) => {
   if (!value) {
     return [];
   }

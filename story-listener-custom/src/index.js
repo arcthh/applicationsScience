@@ -1,34 +1,32 @@
 import api, { storage } from '@forge/api';
 import { CONFIG } from './config';
 
-type JiraIssue = {
-  id: string;
-  key: string;
-  fields: Record<string, any>;
-};
+/**
+ * @typedef {Object} JiraIssue
+ * @property {string} id
+ * @property {string} key
+ * @property {Record<string, any>} fields
+ */
 
-type ChangeItem = {
-  field?: string;
-  fieldId?: string;
-  fromString?: string | null;
-  toString?: string | null;
-  from?: string | null;
-  to?: string | null;
-};
+/**
+ * @typedef {Object} ChangeItem
+ * @property {string=} field
+ * @property {string=} fieldId
+ * @property {string | null=} fromString
+ * @property {string | null=} toString
+ * @property {string | null=} from
+ * @property {string | null=} to
+ */
 
-type JiraEvent = {
-  issue?: {
-    id?: string;
-    key?: string;
-  };
-  changelog?: {
-    items?: ChangeItem[];
-  };
-};
+/**
+ * @typedef {Object} JiraEvent
+ * @property {{ id?: string, key?: string }=} issue
+ * @property {{ items?: ChangeItem[] }=} changelog
+ */
 
 const impactedFieldIdCacheKey = 'impacted-field-id';
 
-export const run = async (event: JiraEvent) => {
+export const run = async (event) => {
   if (!event.issue?.id && !event.issue?.key) {
     console.log('No issue data on event payload.');
     return;
@@ -118,7 +116,7 @@ const resolveImpactedFieldId = async () => {
     return CONFIG.impactedFieldDefaultId;
   }
 
-  const fields = (await response.json()) as Array<{ id: string; name: string }>;
+  const fields = await response.json();
   const match = fields.find(
     (field) => field.name === CONFIG.impactedFieldName
   );
@@ -130,7 +128,7 @@ const resolveImpactedFieldId = async () => {
   return fieldId;
 };
 
-const fetchIssue = async (issueKeyOrId: string, fields: string[]) => {
+const fetchIssue = async (issueKeyOrId, fields) => {
   const response = await api
     .asApp()
     .requestJira(
@@ -142,14 +140,10 @@ const fetchIssue = async (issueKeyOrId: string, fields: string[]) => {
     console.log(`Failed to fetch issue ${issueKeyOrId}: ${response.status}`);
     return null;
   }
-  return (await response.json()) as JiraIssue;
+  return await response.json();
 };
 
-const updateIssueField = async (
-  issueKey: string,
-  fieldId: string,
-  value: any
-) => {
+const updateIssueField = async (issueKey, fieldId, value) => {
   await setLoopGuard(issueKey);
   const response = await api.asApp().requestJira(`/rest/api/3/issue/${issueKey}`, {
     method: 'PUT',
@@ -169,7 +163,7 @@ const updateIssueField = async (
   }
 };
 
-const getEpicKeyFromIssue = (issue: JiraIssue): string | null => {
+const getEpicKeyFromIssue = (issue) => {
   const parentKey = issue.fields?.parent?.key;
   if (parentKey) {
     return parentKey;
@@ -177,7 +171,7 @@ const getEpicKeyFromIssue = (issue: JiraIssue): string | null => {
   return null;
 };
 
-const getEpicChange = (items: ChangeItem[]) => {
+const getEpicChange = (items) => {
   const epicItem = items.find(
     (item) => item.field === 'Epic Link' || item.field === 'Parent'
   );
@@ -190,12 +184,7 @@ const getEpicChange = (items: ChangeItem[]) => {
   };
 };
 
-const hasFieldChanged = (
-  items: ChangeItem[],
-  fieldId: string,
-  fieldName: string,
-  legacyFieldName: string
-) =>
+const hasFieldChanged = (items, fieldId, fieldName, legacyFieldName) =>
   items.some(
     (item) =>
       item.fieldId === fieldId ||
@@ -209,12 +198,6 @@ const handleEpicLinkChange = async ({
   oldEpicKey,
   newEpicKey,
   impactedFieldId,
-}: {
-  story: JiraIssue;
-  storyImpactedValues: string[];
-  oldEpicKey?: string | null;
-  newEpicKey?: string | null;
-  impactedFieldId: string;
 }) => {
   if (newEpicKey) {
     console.log(`Story ${story.key} moved to epic ${newEpicKey}.`);
@@ -238,12 +221,6 @@ const syncEpicImpactedApplications = async ({
   storyImpactedValues,
   changelogItems,
   impactedFieldId,
-}: {
-  story: JiraIssue;
-  epicKey: string;
-  storyImpactedValues: string[];
-  changelogItems: ChangeItem[];
-  impactedFieldId: string;
 }) => {
   const epicValues = await getEpicImpactedValues(epicKey, impactedFieldId);
   const epicValuesTrimmed = removeWhitespaceInArrayElements(epicValues);
@@ -280,11 +257,7 @@ const syncEpicImpactedApplications = async ({
   await updateIssueField(epicKey, impactedFieldId, afterRemovals);
 };
 
-const addValuesToEpic = async (
-  epicKey: string,
-  values: string[],
-  impactedFieldId: string
-) => {
+const addValuesToEpic = async (epicKey, values, impactedFieldId) => {
   const epicValues = await getEpicImpactedValues(epicKey, impactedFieldId);
   const combined = determineUniqueValues([
     ...removeWhitespaceInArrayElements(epicValues),
@@ -298,10 +271,10 @@ const addValuesToEpic = async (
 };
 
 const removeValuesFromEpicIfUnused = async (
-  epicKey: string,
-  story: JiraIssue,
-  values: string[],
-  impactedFieldId: string
+  epicKey,
+  story,
+  values,
+  impactedFieldId
 ) => {
   const epicValues = await getEpicImpactedValues(epicKey, impactedFieldId);
   const removals = await filterRemovalsStillUsed(
@@ -319,17 +292,17 @@ const removeValuesFromEpicIfUnused = async (
 };
 
 const filterRemovalsStillUsed = async (
-  epicKey: string,
-  story: JiraIssue,
-  removals: string[],
-  impactedFieldId: string
+  epicKey,
+  story,
+  removals,
+  impactedFieldId
 ) => {
   if (removals.length === 0) {
     return [];
   }
   const stories = await fetchStoriesUnderEpic(epicKey, impactedFieldId);
   const otherStories = stories.filter((issue) => issue.key !== story.key);
-  const valuesStillUsed = new Set<string>();
+  const valuesStillUsed = new Set();
   for (const issue of otherStories) {
     const values = normalizeFieldValues(issue.fields?.[impactedFieldId]);
     removeWhitespaceInArrayElements(values).forEach((value) =>
@@ -339,11 +312,7 @@ const filterRemovalsStillUsed = async (
   return removals.filter((value) => !valuesStillUsed.has(value));
 };
 
-const cascadeEpicValuesToStory = async (
-  epicKey: string,
-  story: JiraIssue,
-  impactedFieldId: string
-) => {
+const cascadeEpicValuesToStory = async (epicKey, story, impactedFieldId) => {
   const epicValues = await getEpicImpactedValues(epicKey, impactedFieldId);
   const filtered = epicValues.filter(
     (value) => value !== CONFIG.sentinelValue
@@ -355,10 +324,7 @@ const cascadeEpicValuesToStory = async (
   await updateIssueField(story.key, impactedFieldId, filtered);
 };
 
-const getEpicImpactedValues = async (
-  epicKey: string,
-  impactedFieldId: string
-) => {
+const getEpicImpactedValues = async (epicKey, impactedFieldId) => {
   const epic = await fetchIssue(epicKey, [impactedFieldId]);
   if (!epic) {
     return [];
@@ -370,8 +336,8 @@ const getEpicImpactedValues = async (
   );
 };
 
-const fetchStoriesUnderEpic = async (epicKey: string, impactedFieldId: string) => {
-  const stories: JiraIssue[] = [];
+const fetchStoriesUnderEpic = async (epicKey, impactedFieldId) => {
+  const stories = [];
   let startAt = 0;
   let total = 0;
   const jql = `issuetype = ${CONFIG.storyIssueType} AND ("Epic Link" = ${epicKey} OR parent = ${epicKey})`;
@@ -396,10 +362,7 @@ const fetchStoriesUnderEpic = async (epicKey: string, impactedFieldId: string) =
       break;
     }
 
-    const data = (await response.json()) as {
-      issues: JiraIssue[];
-      total: number;
-    };
+    const data = await response.json();
     stories.push(...(data.issues ?? []));
     total = data.total ?? stories.length;
     startAt += CONFIG.jqlPageSize;
@@ -408,7 +371,7 @@ const fetchStoriesUnderEpic = async (epicKey: string, impactedFieldId: string) =
   return stories;
 };
 
-const diffFromChangelog = (items: ChangeItem[]) => {
+const diffFromChangelog = (items) => {
   const impactedItem = items.find(
     (item) =>
       item.field === CONFIG.impactedFieldName ||
@@ -435,7 +398,7 @@ const diffFromChangelog = (items: ChangeItem[]) => {
   return { added, removed };
 };
 
-const normalizeFieldValues = (rawValue: any): string[] => {
+const normalizeFieldValues = (rawValue) => {
   if (!rawValue) {
     return [];
   }
@@ -464,11 +427,11 @@ const normalizeFieldValues = (rawValue: any): string[] => {
   return [String(rawValue)];
 };
 
-const removeWhitespaceInArrayElements = (values: string[]) =>
+const removeWhitespaceInArrayElements = (values) =>
   values.map((value) => value.trim()).filter(Boolean);
 
-const determineUniqueValues = (values: string[]) => {
-  const unique = new Map<string, string>();
+const determineUniqueValues = (values) => {
+  const unique = new Map();
   values.forEach((value) => {
     const trimmed = value.trim();
     if (!trimmed) {
@@ -481,7 +444,7 @@ const determineUniqueValues = (values: string[]) => {
   return Array.from(unique.values());
 };
 
-const logInvalidCsiValues = (issueKey: string, values: string[]) => {
+const logInvalidCsiValues = (issueKey, values) => {
   values.forEach((value) => {
     if (value === CONFIG.sentinelValue) {
       return;
@@ -492,10 +455,10 @@ const logInvalidCsiValues = (issueKey: string, values: string[]) => {
   });
 };
 
-const arraysEqual = (a: string[], b: string[]) =>
+const arraysEqual = (a, b) =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
-const setLoopGuard = async (issueKey: string) => {
+const setLoopGuard = async (issueKey) => {
   await api
     .asApp()
     .requestJira(`/rest/api/3/issue/${issueKey}/properties/${CONFIG.loopGuardProperty}`, {
@@ -507,18 +470,18 @@ const setLoopGuard = async (issueKey: string) => {
     });
 };
 
-const getLoopGuard = async (issueKey: string) => {
+const getLoopGuard = async (issueKey) => {
   const response = await api
     .asApp()
     .requestJira(`/rest/api/3/issue/${issueKey}/properties/${CONFIG.loopGuardProperty}`);
   if (!response.ok) {
     return null;
   }
-  const data = (await response.json()) as { value?: { timestamp?: number } };
+  const data = await response.json();
   return data.value?.timestamp ?? null;
 };
 
-const handleTravelRuleNotification = async (story: JiraIssue) => {
+const handleTravelRuleNotification = async (story) => {
   const value = story.fields?.[CONFIG.travelRuleFieldName];
   if (!value || String(value).toLowerCase() !== 'yes') {
     return;
@@ -557,7 +520,7 @@ const handleTravelRuleNotification = async (story: JiraIssue) => {
   }
 };
 
-export const sendTravelRuleEmailPlaceholder = async (storyKey: string) => {
+export const sendTravelRuleEmailPlaceholder = async (storyKey) => {
   console.log(`Placeholder email sender invoked for ${storyKey}.`);
   await storage.set(`travel-rule-email:${storyKey}`, {
     timestamp: Date.now(),

@@ -14,7 +14,7 @@ This Forge app **creates and owns** a custom field named **Impacted Applications
 The custom field is declared in `manifest.yml` under `jira:customField` and is managed by this Forge app.
 
 ## Configurable defaults
-Edit `src/config.ts` to adjust defaults:
+Edit `src/config.js` to adjust defaults:
 - `storyIssueType`: `Story`
 - `impactedFieldName`: `Impacted Applications`
 - `impactedFieldLegacyName`: `Impacted Application/s`
