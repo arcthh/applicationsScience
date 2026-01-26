@@ -9,8 +9,10 @@ modules:
       resolver:
         function: fieldResolver
       edit:
+        render: native
         function: fieldEdit
       view:
+        render: native
         function: fieldView
       searcherKey: com.atlassian.jira.plugin.system.customfieldtypes:multiselectsearcher
   trigger:
@@ -31,7 +33,7 @@ functions:
 app:
   id: ari:cloud:ecosystem::app/00000000-0000-0000-0000-000000000000
   runtime:
-    name: nodejs18.x
+    name: nodejs22.x
     snapshots: false
 permissions:
   scopes:
